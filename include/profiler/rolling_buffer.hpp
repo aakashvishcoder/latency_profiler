@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <array>
+#include <cstddef>
 namespace profiler{
 
 class RollingStats {
@@ -40,12 +42,14 @@ public:
     double percentile_ns(const Buffer& buf,double p ) const noexcept{
         if (buf.size() ==0) return 0.0;
 
-        std::array<int64_t, Buffer::capacity()> tmp{};
+        std::array<int64_t, Buffer::kCapacity> tmp{};
         size_t n =buf.size();
-        buf.for_each([&](int64_t){/*filled for index*/});
         size_t i=0;
-        buf.for_each([&](int64_t){if(i < n) tmp[i++]=v;});
-        const size_t k= static_cast<size_t>((p/100.0) *n);
+        buf.for_each([&](int64_t v){ if (i < n) tmp[i++] = v; });
+        const size_t k = std::min(
+            n - 1,
+            static_cast<size_t>((p / 100.0) * static_cast<double>(n - 1))
+        );
         std::partial_sort(tmp.begin(), tmp.begin()+k + 1, tmp.begin()+n);
         return static_cast<double>(tmp[k]);
     }
@@ -65,4 +69,4 @@ private:
     int64_t max_{std::numeric_limits<int64_t>::min()};
 
 };
-};
+}

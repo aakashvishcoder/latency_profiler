@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <memory>
 #include <random>
 
 using namespace profiler;
@@ -22,14 +23,14 @@ int main() {
     constexpr int NUM_THREADS   = 8;
     constexpr int EVENTS_PER_THREAD = 1'000'000;
 
-    std::vector<Profiler> profilers;
+    std::vector<std::unique_ptr<Profiler>> profilers;
     profilers.reserve(NUM_THREADS);
     for (int i = 0; i < NUM_THREADS; ++i)
-        profilers.emplace_back("thread_" + std::to_string(i));
+        profilers.emplace_back(std::make_unique<Profiler>("thread_" + std::to_string(i)));
 
 
     Reporter reporter(std::chrono::milliseconds(500));
-    for (auto& p : profilers) reporter.register_profiler(p);
+    for (auto& p : profilers) reporter.register_profiler(*p);
     reporter.start();
 
     std::cout << "=== Stress Test: " << NUM_THREADS << " threads × "
@@ -42,7 +43,7 @@ int main() {
         workers.emplace_back([&profilers, t]() {
             std::mt19937 rng(42 + t);
             for (int i = 0; i < EVENTS_PER_THREAD; ++i) {
-                simulate_trading_op(profilers[t], rng);
+                simulate_trading_op(*profilers[t], rng);
             }
         });
     }

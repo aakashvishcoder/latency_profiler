@@ -20,8 +20,12 @@ PYBIND11_MODULE(latency_profiler_py, m) {
 
     py::class_<Profiler>(m, "Profiler")
         .def(py::init<std::string>(), py::arg("name") = "default")
-        .def("start", &Profiler::start)
-        .def("stop", &Profiler::stop)
+        .def("start", [](Profiler& p) {
+            return Timestamp::now().time_since_epoch().count();
+        })
+        .def("stop", [](Profiler& p, int64_t start_ns) {
+            p.stop(TimePoint(Nanoseconds(start_ns)));
+        })
         .def("report", &Profiler::report)
         .def("reset", &Profiler::reset);
 }

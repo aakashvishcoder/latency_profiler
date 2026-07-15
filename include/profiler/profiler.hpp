@@ -11,7 +11,7 @@ constexpr size_t DEFAULT_BUFFER_SIZE= 4096;
 
 class Profiler {
 public:
-    explicit Profiler(std::string name="default", size_t buffer_size= DEFAULT_BUFFER_SIZE)
+    explicit Profiler(std::string name="default")
         : name_(std::move(name)) {}
     
     __attribute__((always_inline))
@@ -20,7 +20,7 @@ public:
     }
     __attribute__((always_inline))
     void stop(TimePoint t0) noexcept{
-        const auto t1= TimePoint::now();
+        const auto t1 = Timestamp::now();
         const int64_t latency_ns=Timestamp::elapsed_ns(t0, t1);
         stats_.update(latency_ns);
 
@@ -45,7 +45,7 @@ public:
         r.events= event_count_.load(std::memory_order_relaxed);
         r.mean_us = stats_.mean_ns()/ 1000.0;
         r.min_ns = stats_.min_ns();
-        r.max_ns=stats_.mean_ns();
+        r.max_ns = stats_.max_ns();
         r.p50_us= stats_.percentile_ns(samples_, 50.0)/1000.0;
         r.p99_us= stats_.percentile_ns(samples_, 99.0)/1000.0;
         r.p999_us= stats_.percentile_ns(samples_, 99.9)/1000.0;

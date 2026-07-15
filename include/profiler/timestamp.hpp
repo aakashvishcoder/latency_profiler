@@ -20,6 +20,10 @@ public:
     static int64_t elapsed_ns(TimePoint start, TimePoint end) noexcept {
         return std::chrono::duration_cast<Nanoseconds>(end-start).count();
     }
+    __attribute__((always_inline))
+    static double elapsed_us(TimePoint start, TimePoint end) noexcept {
+        return static_cast<double>(elapsed_ns(start, end)) / 1000.0;
+    }
 };
 
 class ScopedTimer {
